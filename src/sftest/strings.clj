@@ -11,6 +11,11 @@
 ;; number of characters.
 (defn closest-length [x y] (Math/abs (- (count x) (count y))))
 
+;; Hamming distance of two strings: counts characters that differ.
+(defn hamming [x y]
+  (if (not= (count x) (count y)) nil
+      (count (filter true? (map not= x y)))))
+
 ;; Given a sequence of strings, return the  closest to the first.  The result is
 ;; a hashmap with the two strings and the distance.
 ;; TODO: check length of xs >1
@@ -74,16 +79,18 @@
   (find-closest-strings (strs) closest-length (fn [xs] (sort-by count xs)))
 
   (time (find-closest-strings (dict) closest-length2 (fn [xs] (sort-by count xs))))
+
+
+  (time
+   (find-closest-strings
+    (dict)
+    hamming
+    (fn [d] (< d 2))
+    (fn [xs] (sort-by count (map clojure.string/lower-case xs))))
+   )
   
-  )
+  ) ;; Comment
 
-
-
-
-
-(defn closest-length2 [x y]
-  (let [x (count x) y (count y)]
-    (if (not= x y) nil x)))
 
 
 
