@@ -80,7 +80,36 @@
 
   (time (find-closest-strings (dict) closest-length2 (fn [xs] (sort-by count xs))))
 
+  ;; Passing empty string sequence
+  (find-closest-strings
+   []
+   hamming
+   (fn [d] (< d 2))
+   (fn [xs] (sort-by count (map clojure.string/lower-case xs))))
 
+  ;; Passing single string sequence
+  (find-closest-strings
+   ["foo"]
+   hamming
+   (fn [d] (< d 2))
+   (fn [xs] (sort-by count (map clojure.string/lower-case xs))))
+
+  ;; Passing two string sequence
+  (find-closest-strings
+   ["foo" "bar"]
+   hamming
+   (fn [d] (< d 2))
+   (fn [xs] (sort-by count (map clojure.string/lower-case xs))))
+
+  ;; Passing non-strings
+  (find-closest-strings
+   [1 2 3 4 5 6 7]
+   (fn [x y] (Math/abs (- x y)))
+   (fn [d] false)
+   identity)
+
+  ;; TODO, should also check that a seq is passed.
+  
   (time
    (find-closest-strings
     (dict)
