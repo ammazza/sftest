@@ -55,10 +55,10 @@
         xs (map (partial nthnext xs) (range (count xs)))]
     (reduce
      (fn [r1 x]
-       (let [r2 (closest-to-first x dfn)
+       (let [r2 (closest-to-first x dfn bfn)
              r (if (< (:dist r1) (:dist r2)) r1 r2)]
          (if (bfn (:dist r)) (reduced r) r)))
-     (closest-to-first (first xs) dfn)
+     (closest-to-first (first xs) dfn bfn)
      (rest xs))))
 
 
