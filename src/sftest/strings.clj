@@ -19,7 +19,8 @@
 (defn closest-to-first
   ""
   [xs   ;; The sequence of elements (strings)
-   dfn] ;; A distance binary function - smaller is more similar, nil for invalid
+   dfn  ;; A distance binary function - smaller is more similar, nil for invalid
+   bfn] ;; Break function - boolean: if true the result if good enough
   (let [refx (first xs)] ;; The first element (reference) to be compared against the others.
     (reduce
      ;; The reducing function takes parms of different types. The first is a hashmap
@@ -33,7 +34,9 @@
          ;; The result is nil, exit the reduction loop, otherwise
          ;; compare the result with the previous and if needed update.
          (if (nil? d) (reduced res)
-             (if (< d (:dist res)) {:s1 refx :s2 x :dist d} res))))     
+             (let [res (if (< d (:dist res)) {:s1 refx :s2 x :dist d} res)]
+               ;; Check current result with the break function and possibly terminate search.
+               (if (bfn (:dist res)) (reduced res) res)))))
      ;; We initialise  the reduction  result with  the distance  between the
      ;; first two elements in the sequence.
      {:s1 "" :s2 "" :dist ##Inf}
@@ -46,13 +49,15 @@
   ""
   [xs   ;; The sequence of elements (strings)
    dfn  ;; A distance binary function - smaller is more similar
+   bfn  ;; Break function - boolean: if true the result if good enough
    pfn] ;; Preprocessing function that returns a new xs
   (let [xs (pfn xs)
         xs (map (partial nthnext xs) (range (count xs)))]
     (reduce
      (fn [r1 x]
-       (let [r2 (closest-to-first x dfn)]
-         (if (< (:dist r1) (:dist r2)) r1 r2)))
+       (let [r2 (closest-to-first x dfn)
+             r (if (< (:dist r1) (:dist r2)) r1 r2)]
+         (if (bfn (:dist r)) (reduced r) r)))
      (closest-to-first (first xs) dfn)
      (rest xs))))
 
@@ -63,12 +68,14 @@
 ;; of this (e.g. sort by length and pass a termination function that checks for
 ;; difference in length).
 
-(find-closest-strings (strs) closest-length identity)
+(comment 
+  (find-closest-strings (strs) closest-length identity)
 
-(find-closest-strings (strs) closest-length (fn [xs] (sort-by count xs)))
+  (find-closest-strings (strs) closest-length (fn [xs] (sort-by count xs)))
 
-(find-closest-strings (dict) closest-length2 (fn [xs] (sort-by count xs)))
-
+  (time (find-closest-strings (dict) closest-length2 (fn [xs] (sort-by count xs))))
+  
+  )
 
 
 
