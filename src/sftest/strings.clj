@@ -1,4 +1,8 @@
-(ns sftest.strings)
+(ns sftest.strings
+  (:require [sftest.dict :refer [dict]]))
+
+;; TODO: check input parameters (e.g. empty/degenerate sequences)
+;; TODO: add tests
 
 ;; Example dataset for development
 (defn strs [] ["functional" "dysfunctional" "function" "ufo" "filippo"])
@@ -15,20 +19,26 @@
 (defn closest-to-first
   ""
   [xs   ;; The sequence of elements (strings)
-   dfn] ;; A distance binary function - smaller is more similar
+   dfn] ;; A distance binary function - smaller is more similar, nil for invalid
   (let [refx (first xs)] ;; The first element (reference) to be compared against the others.
     (reduce
      ;; The reducing function takes parms of different types. The first is a hashmap
      ;; (result of the  previous iteration), the second is a  element of the
      ;; sequence to reduce (the next element to be processed).
      (fn [res x]
+       ;; Function dfn returns the distance or nil if input is invalid,
+       ;; like trying to compute Hamming of strings of different length.
        (let [d (dfn refx x)]
-         (if (< d (:dist res)) {:s1 refx :s2 x :dist d} res)))
+         ;; (println refx " vs " x)
+         ;; The result is nil, exit the reduction loop, otherwise
+         ;; compare the result with the previous and if needed update.
+         (if (nil? d) (reduced res)
+             (if (< d (:dist res)) {:s1 refx :s2 x :dist d} res))))     
      ;; We initialise  the reduction  result with  the distance  between the
      ;; first two elements in the sequence.
-     {:s1 (first xs) :s2 (second xs) :dist (dfn (first xs) (second xs))}
-     ;; We already considered the first two  elements.
-     (rest (rest xs)))))
+     {:s1 "" :s2 "" :dist ##Inf}
+     ;; Note that the comparison of the first 2 elements is repeated.
+     (rest xs))))
 
 ;; Given a  sequence of strings,  return the two  strings that are  closest. The
 ;; result is a hashmap with the two strings and the distance.
@@ -54,6 +64,28 @@
 ;; difference in length).
 
 (find-closest-strings (strs) closest-length identity)
+
+(find-closest-strings (strs) closest-length (fn [xs] (sort-by count xs)))
+
+(find-closest-strings (dict) closest-length2 (fn [xs] (sort-by count xs)))
+
+
+
+
+
+
+(defn closest-length2 [x y]
+  (let [x (count x) y (count y)]
+    (if (not= x y) nil x)))
+
+
+
+
+
+
+
+
+
 
 
 
