@@ -84,26 +84,23 @@
 
 ;; (parse-date "2018-06-25T21:53:35")
 
+(defn- diff-and-print [s1 s2]
+  (let [d1 (parse-date s1)
+        d2 (parse-date s2)]
+    (if (or (nil? d1) (nil? d2))
+      (println "Couldn't parse dates:" s1 "/" s2)
+      (println s1 "-" s2 "=" (date-difference-seconds d1 d2) "sec"))))
+
 ;; OK, this read from stdin until C-d and keep the seq in memory.
 (defn -main []
+  (println
+   (str
+    "Date difference - Input dates one per line, in format\n"
+    "'YYYY-MM-DDTHH:MM:SS'. Use CTRL-D to stop input.\n"
+    "Dates will be takes two by two and their difference in\n"
+    "seconds will be calculated.\n"))
   (let [lns (doall (line-seq (java.io.BufferedReader. *in*)))]
-    (println lns)))
+    (println)
+    (dorun (map #(apply diff-and-print %) (partition 2 lns)))))
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+;; java -cp target/sftest-0.1.0-SNAPSHOT-standalone.jar sftest.dates
