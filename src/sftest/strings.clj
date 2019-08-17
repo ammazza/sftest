@@ -1,5 +1,6 @@
 (ns sftest.strings
-  (:require [sftest.dict :refer [dict]]))
+  (:require [sftest.dict :refer [dict]])
+  (:gen-class))
 
 ;; TODO: check input parameters (e.g. empty/degenerate sequences)
 ;; TODO: add tests
@@ -66,6 +67,21 @@
      (closest-to-first (first xs) dfn bfn)
      (rest xs))))
 
+
+(defn -main []
+  (println
+   (str
+    "Closest strings - Input string one per line and use CTRL-D to finish.\n"
+    "The two closest strings will be found, using the Hamming distance.\n"
+    "The comparison is case insensitive and will stop as soon as strings\n"
+    "that differ by 1 character only are found.\n"))
+  (let [lns (doall (line-seq (java.io.BufferedReader. *in*)))
+        res (find-closest-strings lns
+                                  hamming
+                                  (fn [d] (< d 2))
+                                  (fn [xs] (sort-by count (map clojure.string/lower-case xs))))]
+    (println)
+    (println (:s1 res) "-" (:s2 res) "->" (:dist res) "chars")))
 
 ;; Function closest to first can be  easily used to process only subsequences of
 ;; the main sequence -  e.g.  all words with the same length  if we're using the
