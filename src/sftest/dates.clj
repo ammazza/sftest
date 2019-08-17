@@ -2,11 +2,11 @@
   ;; (:require [sftest.dict :refer [dict]])
   (:gen-class))
 
-;; Internal date representation
-{:year 2019 :month 6 :day 25 :hour 21 :minute 53 :second 35}
-{:year 2018 :month 6 :day 25 :hour 22 :minute 53 :second 36}
+;; Internally dates are represented as hashmaps.
+;; {:year 2019 :month 6 :day 25 :hour 21 :minute 53 :second 35}
 
 ;; Given a sequence of dates, sort it in descending order.
+;; This function isn't actually used anywhere.
 (defn- sort-dates [ds]
   (sort-by
    (juxt :year :month :day :hour :minute :second)
@@ -16,9 +16,12 @@
 ;; Number of leap years from epoch
 ;; TODO: implement!
 (defn- is-leap-year [y]
-  (rem y 4))
+  (if (zero? (rem y 400)) true
+      (if (zero? (rem y 100)) false
+          (if (zero? (rem y 4)) true))))
 
-(defn leap-years-from-epoch [d] 0)
+(defn leap-years-from-epoch [d]
+  (filter is-leap-year (range (:year d))))
 
 ;; Given a date, return how many full days passed from
 ;; the beginning of the year.
@@ -31,28 +34,22 @@
 
 ;; Given a date, return how many full days have passed since
 ;; the epoch: 1 Jan 0000 at 00:00:00.
-(defn days-from-epoch [d]
+(defn- days-from-epoch [d]
   (+ (* 365 (:year d))
      (leap-years-from-epoch d)
      (days-from-year-beginning d)))
 
 ;; Epoch {:year 0 :month 1 :day 1 :hour 0 :minute 0 :second 0}
-(defn seconds-from-epoch [d]
+(defn- seconds-from-epoch [d]
   (+ (* 24 60 60 (days-from-epoch d))
      (* 60 60 (:hour d))
      (* 60 (:minute d))
      (:second d)))
 
-(defn date-difference-seconds [d1 d2]
+(defn- date-difference-seconds [d1 d2]
   (let [d1 (seconds-from-epoch d1)
         d2 (seconds-from-epoch d2)]
     (Math/abs (- d1 d2))))
-
-
-
-(date-difference-seconds
- {:year 2019 :month 6 :day 25 :hour 21 :minute 53 :second 35}
- {:year 2018 :month 6 :day 25 :hour 22 :minute 53 :second 36})
 
 ;; {:year 0 :month 1 :day 1 :hour 0 :minute 0 :second 0}
 
@@ -81,15 +78,19 @@
        :second (Integer. (.group matcher "second"))}
       nil)))
 
-
 ;; (parse-date "2018-06-25T21:53:35")
 
-(defn- diff-and-print [s1 s2]
+(defn string-date-difference-seconds [s1 s2]
   (let [d1 (parse-date s1)
         d2 (parse-date s2)]
-    (if (or (nil? d1) (nil? d2))
+    (if (or (nil? d1) (nil? d2)) nil
+        (date-difference-seconds d1 d2))))
+  
+(defn- diff-and-print [s1 s2]
+  (let [d (string-date-difference-seconds s1 s2)]
+    (if (nil? d)
       (println "Couldn't parse dates:" s1 "/" s2)
-      (println s1 "-" s2 "=" (date-difference-seconds d1 d2) "sec"))))
+      (println s1 "-" s2 "=" d "sec"))))
 
 ;; OK, this read from stdin until C-d and keep the seq in memory.
 (defn -main []
@@ -104,3 +105,7 @@
     (dorun (map #(apply diff-and-print %) (partition 2 lns)))))
 
 ;; java -cp target/sftest-0.1.0-SNAPSHOT-standalone.jar sftest.dates
+
+
+
+
