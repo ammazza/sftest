@@ -115,6 +115,12 @@ based on a  distance value. This way  a _good enough_ threshold can  be set: the
 first pair of string that have that  distance or less are returned as result and
 the search terminates.
 
+By choice,  no validation  is attempted  on the  input. The  application handles
+correctly (and  returns the _invalid_  result) for  sequences that are  empty or
+with  one string  only,  otherwise  the search  function  that  be tricked  into
+accepting _unplanned_ input,  e.g. operating on numbers and  finding the closest
+by some definition of distance.
+
 #### Other string distances
 
 The  Hamming  distance was  chosen  because  it's  simple  to compute  and  well
