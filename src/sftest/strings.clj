@@ -67,7 +67,8 @@
      (closest-to-first (first xs) dfn bfn)
      (rest xs))))
 
-
+;; TODO: if sort word in decreasing size, I may find more
+;; meaningful similar words!
 (defn -main []
   (println
    (str
