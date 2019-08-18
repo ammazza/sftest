@@ -1,5 +1,4 @@
 (ns sftest.dates
-  ;; (:require [sftest.dict :refer [dict]])
   (:gen-class))
 
 ;; Internally dates are represented as hashmaps.
@@ -21,7 +20,7 @@
           (if (zero? (rem y 4)) true))))
 
 (defn leap-years-from-epoch [d]
-  (filter is-leap-year (range (:year d))))
+  (count (filter is-leap-year (range (:year d)))))
 
 ;; Given a date, return how many full days passed from
 ;; the beginning of the year.
@@ -79,6 +78,14 @@
       nil)))
 
 ;; (parse-date "2018-06-25T21:53:35")
+;; (date-difference-seconds
+;;  (parse-date "2018-06-25T21:53:35")
+;;  (parse-date "2018-06-25T21:53:35"))
+
+;; (seconds-from-epoch
+;;  (parse-date "2018-06-25T21:53:35"))
+
+;; "2018-06-25T21:53:35"
 
 (defn string-date-difference-seconds [s1 s2]
   (let [d1 (parse-date s1)
@@ -105,6 +112,21 @@
     (dorun (map #(apply diff-and-print %) (partition 2 lns)))))
 
 ;; java -cp target/sftest-0.1.0-SNAPSHOT-standalone.jar sftest.dates
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
