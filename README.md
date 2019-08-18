@@ -115,12 +115,21 @@ based on a  distance value. This way  a _good enough_ threshold can  be set: the
 first pair of string that have that  distance or less are returned as result and
 the search terminates.
 
-TODO: If you evaluated and
-rejected any alternative designs or similarity measures, these should be
-mentioned in the discussion.
-- generic distance only benefits from threshold
-- cosine would work as well, but is less like what humans understand
-- consider LCS...
+#### Other string distances
+
+The  Hamming  distance was  chosen  because  it's  simple  to compute  and  well
+represent  the  human  concept  of  string  similarity.  Also,  because  of  its
+applicability to strings of same length  only, allows to reduce the search space
+as explained above.
+
+Another  fast distance  for  same  length strings,  the  cosine similarity,  was
+rejected  as  less   _human_  because  it  may  select   anagrams,  but  further
+investigations would be necessary.
+
+More  generic distances  like the  Levenstein algorithm  or the  _Longest Common
+Subsequence_  could be  easily added  to  the application,  although they  would
+require  searching  all  pairs  of   strings,  making  the  search  time  always
+worst-case.
 
 ### Date difference explanation
 
