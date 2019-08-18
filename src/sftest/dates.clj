@@ -102,7 +102,7 @@
 ;; Compute date difference in seconds starting from dates
 ;; expressed as strings. Return nil if any of the dates could
 ;; not be parsed.
-(defn- string-date-difference-seconds [s1 s2]
+(defn string-date-difference-seconds [s1 s2]
   (let [d1 (parse-date s1)
         d2 (parse-date s2)]
     (if (or (nil? d1) (nil? d2)) nil

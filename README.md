@@ -19,6 +19,11 @@ successful, start a Clojure REPL (that you can quit with `CTRL-D`).
 From the repository  root run `lein uberjar`. This will  create a standalone jar
 file containing both applications.
 
+## Testing
+
+Tests are provided for  some uses of the main public functions.  To run them use
+`lein test`.
+
 ## Usage
 
 Both applications when started show a  brief help message and then start waiting
