@@ -1,32 +1,29 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Structures and functions to compute string distance and find similar strings.
+
 (ns sftest.strings
-  (:require [sftest.dict :refer [dict]])
   (:gen-class))
 
-;; TODO: check input parameters (e.g. empty/degenerate sequences)
-;; TODO: add tests
-
-;; Example dataset for development
-(defn strs [] ["functional" "dysfunctional" "function" "ufo" "filippo"])
-
-;; Silly but fast  string similary for development -  absolute difference in
-;; number of characters.
-(defn closest-length [x y] (Math/abs (- (count x) (count y))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; String distance metrics. Any string distance functions must take two string
+;; and return an integer, that is smaller when the strings are more similar. If
+;; the distance cannot be applied to the two strings (e.g. they must be of same
+;; length) then return nil.
 
 ;; Hamming distance of two strings: counts characters that differ.
 (defn hamming [x y]
   (if (not= (count x) (count y)) nil
       (count (filter true? (map not= x y)))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Functions to search sequences for similar strings.
+
 ;; Given a sequence of strings, return the  closest to the first.  The result is
-;; a hashmap with the two strings and the distance.
-;; TODO: check length of xs >1
-;; TODO: consider returning a maybe is length <2
-;; TODO: have additional function to asses if min was reached and terminate with reduced.
+;; a hashmap with the two strings and the distance - {:s1 "sss" :s2 "sss" :dist nnn}
 (defn closest-to-first
-  ""
   [xs   ;; The sequence of elements (strings)
    dfn  ;; A distance binary function - smaller is more similar, nil for invalid
-   bfn] ;; Break function - boolean: if true the result if good enough
+   bfn] ;; Break function - boolean: true the result if good enough
   (let [refx (first xs)] ;; The first element (reference) to be compared against the others.
     (reduce
      ;; The reducing function takes parms of different types. The first is a hashmap
@@ -37,22 +34,21 @@
        ;; like trying to compute Hamming of strings of different length.
        (let [d (dfn refx x)]
          ;; (println refx " vs " x)
-         ;; The result is nil, exit the reduction loop, otherwise
+         ;; If the result is nil, exit the reduction loop, otherwise
          ;; compare the result with the previous and if needed update.
          (if (nil? d) (reduced res)
              (let [res (if (< d (:dist res)) {:s1 refx :s2 x :dist d} res)]
                ;; Check current result with the break function and possibly terminate search.
                (if (bfn (:dist res)) (reduced res) res)))))
-     ;; We initialise  the reduction  result with  the distance  between the
-     ;; first two elements in the sequence.
+     ;; We initialise  the reduction  result with an 'empty result'. Empty
+     ;; string and distance set to +inf (worse than any result).
      {:s1 "" :s2 "" :dist ##Inf}
-     ;; Note that the comparison of the first 2 elements is repeated.
+     ;; We don't compare the first element against itself, would be a fake optimal solution.
      (rest xs))))
 
 ;; Given a  sequence of strings,  return the two  strings that are  closest. The
 ;; result is a hashmap with the two strings and the distance.
 (defn find-closest-strings
-  ""
   [xs   ;; The sequence of elements (strings)
    dfn  ;; A distance binary function - smaller is more similar
    bfn  ;; Break function - boolean: if true the result if good enough
@@ -67,8 +63,9 @@
      (closest-to-first (first xs) dfn bfn)
      (rest xs))))
 
-;; TODO: if sort word in decreasing size, I may find more
-;; meaningful similar words!
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Main function.
+
 (defn -main []
   (println
    (str
@@ -77,6 +74,12 @@
     "The comparison is case-insensitive and will stop as soon as it finds\n"
     "the longest strings that differ by 1 character only.\n"))
   (let [lns (doall (line-seq (java.io.BufferedReader. *in*)))
+        ;; The behaviour and performance of find-closest-strings is strongly influenced
+        ;; by the functions passed as parameter. The ones used in this application are a
+        ;; performace-accuracy trade-off. Strings are sorted by decreasing length and a
+        ;; distance is used (Hamming) that works only on strings of same length. This allows
+        ;; to reduce the number of comparisons. Also, a threshold function is passed: when
+        ;; two strings that differ by one character only are found, the search terminates.
         res (find-closest-strings lns
                                   hamming
                                   (fn [d] (< d 2))
@@ -85,77 +88,3 @@
                                   (fn [xs] (sort-by count #(compare %2 %1) (map clojure.string/lower-case xs))))]
     (println)
     (println (:s1 res) "-" (:s2 res) "->" (:dist res) "chars")))
-
-;; Function closest to first can be  easily used to process only subsequences of
-;; the main sequence -  e.g.  all words with the same length  if we're using the
-;; Hamming distance. The  function processing the main sequence  should make use
-;; of this (e.g. sort by length and pass a termination function that checks for
-;; difference in length).
-
-(comment 
-  (find-closest-strings (strs) closest-length identity)
-
-  (find-closest-strings (strs) closest-length (fn [xs] (sort-by count xs)))
-
-  (time (find-closest-strings (dict) closest-length2 (fn [xs] (sort-by count xs))))
-
-  ;; Passing empty string sequence
-  (find-closest-strings
-   []
-   hamming
-   (fn [d] (< d 2))
-   (fn [xs] (sort-by count (map clojure.string/lower-case xs))))
-
-  ;; Passing single string sequence
-  (find-closest-strings
-   ["foo"]
-   hamming
-   (fn [d] (< d 2))
-   (fn [xs] (sort-by count (map clojure.string/lower-case xs))))
-
-  ;; Passing two string sequence
-  (find-closest-strings
-   ["foo" "bar"]
-   hamming
-   (fn [d] (< d 2))
-   (fn [xs] (sort-by count (map clojure.string/lower-case xs))))
-
-  ;; Passing non-strings
-  (find-closest-strings
-   [1 2 3 4 5 6 7]
-   (fn [x y] (Math/abs (- x y)))
-   (fn [d] false)
-   identity)
-
-  ;; TODO, should also check that a seq is passed.
-  
-  (time
-   (find-closest-strings
-    (dict)
-    hamming
-    (fn [d] (< d 2))
-    (fn [xs] (sort-by count (map clojure.string/lower-case xs))))
-   )
-  
-  ) ;; Comment
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
