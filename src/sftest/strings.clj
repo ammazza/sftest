@@ -74,13 +74,15 @@
    (str
     "Closest strings - Input string one per line and use CTRL-D to finish.\n"
     "The two closest strings will be found, using the Hamming distance.\n"
-    "The comparison is case insensitive and will stop as soon as strings\n"
-    "that differ by 1 character only are found.\n"))
+    "The comparison is case-insensitive and will stop as soon as it finds\n"
+    "the longest strings that differ by 1 character only.\n"))
   (let [lns (doall (line-seq (java.io.BufferedReader. *in*)))
         res (find-closest-strings lns
                                   hamming
                                   (fn [d] (< d 2))
-                                  (fn [xs] (sort-by count (map clojure.string/lower-case xs))))]
+                                  ;; Sorting by descending length, lets us find first longer
+                                  ;; words (hence more meaningful ones) that are similar.
+                                  (fn [xs] (sort-by count #(compare %2 %1) (map clojure.string/lower-case xs))))]
     (println)
     (println (:s1 res) "-" (:s2 res) "->" (:dist res) "chars")))
 
